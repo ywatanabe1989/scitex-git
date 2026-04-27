@@ -40,8 +40,7 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
-    "scitex-git[dev]",
-    "scitex-git[docs]",
+    "scitex-git[dev,docs]",
 ]
 
 [project.urls]
