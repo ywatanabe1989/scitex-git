@@ -88,7 +88,7 @@ def create_child_git(project_dir: Path) -> Optional[Path]:
             logger.info(f"Project is already a git repository at {project_dir}")
             # Optional structure validation: only runs if scitex-writer is installed.
             try:
-                from scitex.writer._verify_tree_structure import verify_tree_structure
+                from scitex_writer._utils._verify_tree_structure import verify_tree_structure
 
                 verify_tree_structure(project_dir)
             except ImportError:
