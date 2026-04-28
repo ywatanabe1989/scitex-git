@@ -3,8 +3,15 @@
 
 """scitex-git — git operations and utilities (extracted from SciTeX)."""
 
-__version__ = "0.1.0"
-
+try:
+    from importlib.metadata import version as _v, PackageNotFoundError
+    try:
+        __version__ = _v("scitex-git")
+    except PackageNotFoundError:
+        __version__ = "0.0.0+local"
+    del _v, PackageNotFoundError
+except ImportError:  # pragma: no cover — only on ancient Pythons
+    __version__ = "0.0.0+local"
 from ._branch import git_branch_rename, git_checkout_new_branch
 from ._clone import clone_repo, git_init
 from ._commit import git_add_all, git_commit
