@@ -3,6 +3,8 @@
 
 """scitex-git — git operations and utilities (extracted from SciTeX)."""
 
+from __future__ import annotations
+
 try:
     from importlib.metadata import version as _v, PackageNotFoundError
     try:
@@ -21,6 +23,7 @@ from ._retry import git_retry
 from ._workflow import setup_branches
 
 __all__ = [
+    "__version__",
     "init_git_repo",
     "find_parent_git",
     "create_child_git",
