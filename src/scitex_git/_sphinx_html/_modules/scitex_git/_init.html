@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_git._init &mdash; scitex-git 0.1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=360bc84d"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            scitex-git
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/scitex_git.html">scitex_git</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">scitex-git</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">scitex_git._init</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_git._init</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># File: /home/ywatanabe/proj/scitex-code/src/scitex/git/init.py</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Git initialization utilities.</span>
+
+<span class="sd">Provides functions to initialize, find, and manage git repositories</span>
+<span class="sd">with different strategies (child, parent, origin).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">git</span><span class="w"> </span><span class="kn">import</span> <span class="n">InvalidGitRepositoryError</span><span class="p">,</span> <span class="n">Repo</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="find_parent_git">
+<a class="viewcode-back" href="../../api/scitex_git.html#scitex_git.find_parent_git">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_parent_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find parent git repository by walking up directory tree.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project_dir: Starting directory to search from</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path to parent git root, or None if not found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">repo_parent</span> <span class="o">=</span> <span class="n">Repo</span><span class="p">(</span><span class="n">project_dir</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">search_parent_directories</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">repo_parent</span><span class="o">.</span><span class="n">git_dir</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">except</span> <span class="n">InvalidGitRepositoryError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="remove_child_git">
+<a class="viewcode-back" href="../../api/scitex_git.html#scitex_git.remove_child_git">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_child_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove project&#39;s local .git folder.</span>
+
+<span class="sd">    When parent git is found, the project&#39;s own .git/ is redundant and</span>
+<span class="sd">    should be removed to avoid nested git repository issues.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project_dir: Project directory containing .git to remove</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        True if removed successfully or doesn&#39;t exist, False on error</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">child_git</span> <span class="o">=</span> <span class="n">project_dir</span> <span class="o">/</span> <span class="s2">&quot;.git&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">child_git</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No child .git found at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removing child .git to use parent repository...&quot;</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">child_git</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removed child .git from </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">PermissionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Permission denied removing .git from </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to remove child .git from </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="create_child_git">
+<a class="viewcode-back" href="../../api/scitex_git.html#scitex_git.create_child_git">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_child_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create isolated git repository in project directory.</span>
+
+<span class="sd">    Uses GitPython to initialize and make initial commit.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project_dir: Directory to initialize as git repo</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path to git root (project_dir), or None on failure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">repo</span> <span class="o">=</span> <span class="n">Repo</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project is already a git repository at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Optional structure validation: only runs if scitex-writer is</span>
+            <span class="c1"># installed AND the project happens to follow the writer-tree</span>
+            <span class="c1"># convention. If either is false, fall through quietly — the</span>
+            <span class="c1"># repo itself is still valid.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">scitex_writer._utils._verify_tree_structure</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+                    <span class="n">verify_tree_structure</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">verify_tree_structure</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">_verify_err</span><span class="p">:</span>
+                <span class="c1"># ImportError: scitex-writer not installed.</span>
+                <span class="c1"># ProjectValidationError / ValueError / OSError: project</span>
+                <span class="c1"># doesn&#39;t follow the writer tree (config/, src/, ... etc).</span>
+                <span class="c1"># All are non-fatal here — the repo itself is still valid;</span>
+                <span class="c1"># tree validation is a writer-side concern.</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Optional verify_tree_structure skipped: </span><span class="si">{</span><span class="n">_verify_err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">project_dir</span>
+        <span class="k">except</span> <span class="n">InvalidGitRepositoryError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initializing new git repository at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">repo</span> <span class="o">=</span> <span class="n">Repo</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+
+        <span class="n">repo</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">([</span><span class="s2">&quot;.&quot;</span><span class="p">])</span>
+        <span class="n">repo</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="s2">&quot;Initial commit from scitex template&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Git repository initialized at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">project_dir</span>
+    <span class="k">except</span> <span class="ne">PermissionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Permission denied creating git repository at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IO error creating git repository at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to create child git repository at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="init_git_repo">
+<a class="viewcode-back" href="../../api/scitex_git.html#scitex_git.init_git_repo">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">init_git_repo</span><span class="p">(</span>
+    <span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">git_strategy</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;child&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize or detect git repository based on git_strategy.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        project_dir: Project directory</span>
+<span class="sd">        git_strategy: Git initialization strategy</span>
+<span class="sd">            - None: Git disabled, returns None</span>
+<span class="sd">            - &#39;child&#39;: Creates isolated git repo in project directory</span>
+<span class="sd">            - &#39;parent&#39;: Tries to use parent git, degrades to &#39;child&#39; if not found</span>
+<span class="sd">            - &#39;origin&#39;: Preserves template&#39;s original git history (handled by clone)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path to git repository root, or None if disabled</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">git_strategy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Git initialization disabled (git_strategy=None)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">git_strategy</span> <span class="o">==</span> <span class="s2">&quot;parent&quot;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using &#39;parent&#39; git strategy, searching for parent repository...&quot;</span><span class="p">)</span>
+        <span class="n">parent_git</span> <span class="o">=</span> <span class="n">find_parent_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">parent_git</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found parent git repository: </span><span class="si">{</span><span class="n">parent_git</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">remove_child_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">parent_git</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No parent git repository found for </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Degrading to &#39;child&#39; strategy (isolated git repo).&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">create_child_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">git_strategy</span> <span class="o">==</span> <span class="s2">&quot;child&quot;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using &#39;child&#39; git strategy, creating isolated repository...&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">create_child_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">git_strategy</span> <span class="o">==</span> <span class="s2">&quot;origin&quot;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using &#39;origin&#39; git strategy, template git history preserved...&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">repo</span> <span class="o">=</span> <span class="n">Repo</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found git repository at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">project_dir</span>
+        <span class="k">except</span> <span class="n">InvalidGitRepositoryError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No git repository found at </span><span class="si">{</span><span class="n">project_dir</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Degrading to &#39;child&#39; strategy.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">create_child_git</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Unknown git_strategy: </span><span class="si">{</span><span class="n">git_strategy</span><span class="si">}</span><span class="s2">. &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Expected &#39;parent&#39;, &#39;child&#39;, &#39;origin&#39;, or None&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;find_parent_git&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;remove_child_git&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;create_child_git&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;init_git_repo&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

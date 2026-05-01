@@ -1,0 +1,6 @@
+﻿scitex\_git
+===========
+
+.. automodule:: scitex_git
+
+   
