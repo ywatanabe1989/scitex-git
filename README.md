@@ -96,7 +96,9 @@ The umbrella package's `scitex.git` import path is preserved via a
 
 ## Part of SciTeX
 
-`scitex-git` is part of [**SciTeX**](https://scitex.ai).
+`scitex-git` is part of [**SciTeX**](https://scitex.ai). Install via
+the umbrella with `pip install scitex[git]` to use as
+`scitex.git` (Python).
 
 >Four Freedoms for Research
 >
