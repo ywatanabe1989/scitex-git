@@ -10,16 +10,42 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 <!-- scitex-badges:end -->
 
+<p align="center">
+  <a href="https://scitex.ai">
+    <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
+  </a>
+</p>
 
-Git operations and utilities extracted from the [SciTeX](https://github.com/ywatanabe1989/scitex-python) ecosystem as a standalone package.
+<p align="center"><b>Git operations and utilities — clone, init, branch, remote, retry decorator.</b></p>
 
-## Install
+<p align="center">
+  <a href="https://scitex-git.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-git</code>
+</p>
+
+---
+
+## Installation
 
 ```bash
 pip install scitex-git
 ```
 
-## API
+## Quick Start
+
+```python
+import scitex_git as sxg
+
+sxg.clone_repo("https://github.com/foo/bar", "./bar")
+sxg.git_add_all("./bar")
+sxg.git_commit("./bar", message="initial")
+```
+
+## 1 Interfaces
+
+<details>
+<summary><strong>Python API</strong></summary>
+
+<br>
 
 ```python
 import scitex_git as sxg
@@ -54,18 +80,39 @@ sxg.get_head_hash(repo_path)
 def maybe_flaky_operation(): ...
 ```
 
+</details>
+
 ## Status
 
 Standalone fork of `scitex.git`. `scitex.logging.getLogger` is replaced by stdlib
 `logging.getLogger`; the `scitex.sh.sh` shell wrapper is replaced by a tiny
 ~70-LOC `_vendor_sh.py` that supports just the call-shape used here. The
 optional `scitex.writer.verify_tree_structure` validation step in
-`create_child_git` is gated behind a `try/except ImportError` so it only runs
-when `scitex-writer` is installed.
+`create_child_git` is gated behind a `try/except` so it only runs when
+`scitex-writer` is installed.
 
 The umbrella package's `scitex.git` import path is preserved via a
 `sys.modules`-alias bridge so existing code continues to work.
 
+## Part of SciTeX
+
+`scitex-git` is part of [**SciTeX**](https://scitex.ai).
+
+>Four Freedoms for Research
+>
+>0. The freedom to **run** your research anywhere — your machine, your terms.
+>1. The freedom to **study** how every step works — from raw data to final manuscript.
+>2. The freedom to **redistribute** your workflows, not just your papers.
+>3. The freedom to **modify** any module and share improvements with the community.
+>
+>AGPL-3.0 — because we believe research infrastructure deserves the same freedoms as the software it runs on.
+
 ## License
 
 AGPL-3.0-only (see [LICENSE](./LICENSE)).
+
+---
+
+<p align="center">
+  <a href="https://scitex.ai" target="_blank"><img src="docs/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
+</p>
