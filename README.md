@@ -42,7 +42,7 @@ sxg.git_commit("./bar", message="initial")
 
 ## 1 Interfaces
 
-<details>
+<details open>
 <summary><strong>Python API</strong></summary>
 
 <br>
