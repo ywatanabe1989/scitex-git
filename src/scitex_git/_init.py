@@ -9,12 +9,11 @@ Provides functions to initialize, find, and manage git repositories
 with different strategies (child, parent, origin).
 """
 
+from logging import getLogger
 from pathlib import Path
 from typing import Optional
 
 from git import InvalidGitRepositoryError, Repo
-
-from logging import getLogger
 
 logger = getLogger(__name__)
 
@@ -58,7 +57,7 @@ def remove_child_git(project_dir: Path) -> bool:
     try:
         import shutil
 
-        logger.info(f"Removing child .git to use parent repository...")
+        logger.info("Removing child .git to use parent repository...")
         shutil.rmtree(child_git)
         logger.info(f"Removed child .git from {project_dir}")
         return True
@@ -86,13 +85,23 @@ def create_child_git(project_dir: Path) -> Optional[Path]:
         try:
             repo = Repo(project_dir)
             logger.info(f"Project is already a git repository at {project_dir}")
-            # Optional structure validation: only runs if scitex-writer is installed.
+            # Optional structure validation: only runs if scitex-writer is
+            # installed AND the project happens to follow the writer-tree
+            # convention. If either is false, fall through quietly — the
+            # repo itself is still valid.
             try:
-                from scitex_writer._utils._verify_tree_structure import verify_tree_structure
+                from scitex_writer._utils._verify_tree_structure import (
+                    verify_tree_structure,
+                )
 
                 verify_tree_structure(project_dir)
-            except ImportError:
-                pass
+            except Exception as _verify_err:
+                # ImportError: scitex-writer not installed.
+                # ProjectValidationError / ValueError / OSError: project
+                # doesn't follow the writer tree (config/, src/, ... etc).
+                # All are non-fatal here — the repo itself is still valid;
+                # tree validation is a writer-side concern.
+                logger.debug(f"Optional verify_tree_structure skipped: {_verify_err}")
             return project_dir
         except InvalidGitRepositoryError:
             logger.info(f"Initializing new git repository at {project_dir}")
