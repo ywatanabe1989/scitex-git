@@ -20,7 +20,11 @@ interfaces:
 
 Programmatic git operations — `clone_repo`, `git_init`, `git_commit`, `git_add_all`, `git_branch_rename`, `git_checkout_new_branch`, `find_parent_git`, `init_git_repo`, `get_remote_url`, `is_cloned_from`, `git_retry`, `setup_branches`. Drop-in replacement for shelling out to `git` via `subprocess.run` and parsing stdout.
 
+## Sub-skills
+
+- [01_installation.md](01_installation.md) — pip install + system `git` requirement
+- [02_quick-start.md](02_quick-start.md) — clone, init, commit, branch, retry
+- [03_python-api.md](03_python-api.md) — full public surface
+
 See README.md and the package's public `__init__.py` for the full
-function list. This skill leaf exists so agents discover the package
-exists and roughly what shape it has — refer to the source for
-signatures.
+function list.
