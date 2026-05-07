@@ -32,15 +32,25 @@
 pip install scitex-git
 ```
 
-## Quick Start
+## Architecture
 
-```python
-import scitex_git as sxg
-
-sxg.clone_repo("https://github.com/foo/bar", "./bar")
-sxg.git_add_all("./bar")
-sxg.git_commit("./bar", message="initial")
 ```
+scitex_git/
+├── _clone.py          ← clone_repo, ls_remote, get_remote_url
+├── _init.py           ← git_init, init_git_repo, find_parent_git
+├── _commit.py         ← git_add_all, git_commit
+├── _branch.py         ← checkout_new_branch, branch_rename, setup_branches
+├── _remote.py         ← remote-URL helpers, head-hash queries
+├── _retry.py          ← @git_retry decorator (transient-error backoff)
+├── _validation.py     ← repo-state guards
+├── _workflow.py       ← high-level multi-step flows
+├── _vendor_sh.py      ← ~70-LOC subprocess wrapper (replaces scitex.sh)
+└── _skills/           ← agent-facing skill pages
+```
+
+Pure-stdlib core. `_vendor_sh.py` is intentionally tiny so the package
+has no `scitex.*` runtime dependency. The umbrella `scitex.git` import
+resolves through a `sys.modules` bridge.
 
 ## 1 Interfaces
 
@@ -83,6 +93,34 @@ def maybe_flaky_operation(): ...
 ```
 
 </details>
+
+## Demo
+
+```mermaid
+flowchart LR
+    A["scitex_git.clone_repo<br/>(url, dest)"] --> B["@git_retry<br/>(transient errors)"]
+    B --> C["repo on disk"]
+    C --> D["git_add_all + git_commit"]
+    D --> E["checkout_new_branch<br/>+ branch_rename"]
+    E --> F["get_remote_url /<br/>get_head_hash"]
+```
+
+```python
+>>> import scitex_git as sxg
+>>> sxg.clone_repo("https://github.com/foo/bar", "./bar")
+>>> sxg.git_add_all("./bar")
+>>> sxg.git_commit("./bar", message="initial")
+```
+
+## Quick Start
+
+```python
+import scitex_git as sxg
+
+sxg.clone_repo("https://github.com/foo/bar", "./bar")
+sxg.git_add_all("./bar")
+sxg.git_commit("./bar", message="initial")
+```
 
 ## Status
 
