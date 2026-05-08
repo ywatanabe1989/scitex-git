@@ -83,7 +83,12 @@ def set_secret(repo: str, name: str, value: str) -> None:
     ``repo`` follows the ``owner/repo`` form. Idempotent — creates if
     missing, updates otherwise.
     """
-    _run(["gh", "secret", "set", name, "-R", repo, "--body", "-"], stdin=value)
+    # ``gh secret set`` reads from stdin when ``--body`` is omitted.
+    # Earlier we passed ``--body -`` thinking ``-`` meant stdin; gh
+    # actually stored the literal one-byte value ``-``, silently
+    # truncating the secret. Bug surfaced as in-CI ``$SECRET`` length
+    # 1 with sha256 mismatching the local file's hash.
+    _run(["gh", "secret", "set", name, "-R", repo], stdin=value)
 
 
 def list_secrets(repo: str) -> dict[str, str]:

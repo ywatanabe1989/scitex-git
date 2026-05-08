@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scitex-git"
-version = "0.2.0"
+version = "0.3.0"
 description = "Git + GitHub Actions utilities (clone, branch, commit, retry, remote helpers, gh secrets/variables with SHA256 sidecar) — standalone module from the SciTeX ecosystem"
 readme = "README.md"
 license = "AGPL-3.0-only"
