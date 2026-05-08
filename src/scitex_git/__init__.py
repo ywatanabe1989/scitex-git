@@ -6,7 +6,9 @@
 from __future__ import annotations
 
 try:
-    from importlib.metadata import version as _v, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _v
+
     try:
         __version__ = _v("scitex-git")
     except PackageNotFoundError:
@@ -17,6 +19,17 @@ except ImportError:  # pragma: no cover — only on ancient Pythons
 from ._branch import git_branch_rename, git_checkout_new_branch
 from ._clone import clone_repo, git_init
 from ._commit import git_add_all, git_commit
+from ._gh_secrets import (
+    GhSecretError,
+    format_age,
+    get_secret_metadata,
+    get_variable,
+    list_secrets,
+    set_secret,
+    set_secret_with_sha_sidecar,
+    set_variable,
+    sha256_hex,
+)
 from ._init import create_child_git, find_parent_git, init_git_repo, remove_child_git
 from ._remote import get_head_hash, get_remote_url, is_cloned_from, ls_remote
 from ._retry import git_retry
@@ -40,6 +53,16 @@ __all__ = [
     "get_head_hash",
     "setup_branches",
     "git_retry",
+    # GitHub Actions secrets / variables
+    "GhSecretError",
+    "set_secret",
+    "list_secrets",
+    "get_secret_metadata",
+    "set_variable",
+    "get_variable",
+    "set_secret_with_sha_sidecar",
+    "sha256_hex",
+    "format_age",
 ]
 
 # EOF
