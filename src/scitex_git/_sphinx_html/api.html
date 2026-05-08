@@ -64,6 +64,15 @@
 <li class="toctree-l2"><a class="reference internal" href="#scitex_git.get_head_hash"><code class="docutils literal notranslate"><span class="pre">get_head_hash()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_git.setup_branches"><code class="docutils literal notranslate"><span class="pre">setup_branches()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scitex_git.git_retry"><code class="docutils literal notranslate"><span class="pre">git_retry()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.GhSecretError"><code class="docutils literal notranslate"><span class="pre">GhSecretError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.set_secret"><code class="docutils literal notranslate"><span class="pre">set_secret()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.list_secrets"><code class="docutils literal notranslate"><span class="pre">list_secrets()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.get_secret_metadata"><code class="docutils literal notranslate"><span class="pre">get_secret_metadata()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.set_variable"><code class="docutils literal notranslate"><span class="pre">set_variable()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.get_variable"><code class="docutils literal notranslate"><span class="pre">get_variable()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.set_secret_with_sha_sidecar"><code class="docutils literal notranslate"><span class="pre">set_secret_with_sha_sidecar()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.sha256_hex"><code class="docutils literal notranslate"><span class="pre">sha256_hex()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_git.format_age"><code class="docutils literal notranslate"><span class="pre">format_age()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -492,6 +501,131 @@ If add or commit fail, no rollback is needed as the repo state is unchanged.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">commit_file</span><span class="p">():</span>
 <span class="gp">... </span>    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;commit&quot;</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;msg&quot;</span><span class="p">],</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">git_retry</span><span class="p">(</span><span class="n">commit_file</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="scitex_git.GhSecretError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">GhSecretError</span></span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#GhSecretError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.GhSecretError" title="Link to this definition"></a></dt>
+<dd><p>Raised when a <code class="docutils literal notranslate"><span class="pre">gh</span></code> subprocess returns non-zero.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.set_secret">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">set_secret</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#set_secret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.set_secret" title="Link to this definition"></a></dt>
+<dd><p>Push <code class="docutils literal notranslate"><span class="pre">value</span></code> into the Actions secret <code class="docutils literal notranslate"><span class="pre">name</span></code> for <code class="docutils literal notranslate"><span class="pre">repo</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">repo</span></code> follows the <code class="docutils literal notranslate"><span class="pre">owner/repo</span></code> form. Idempotent — creates if
+missing, updates otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.list_secrets">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">list_secrets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#list_secrets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.list_secrets" title="Link to this definition"></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">{secret_name:</span> <span class="pre">updated_at_iso}</span></code> for the repo.</p>
+<p>Pagination is honoured (<code class="docutils literal notranslate"><span class="pre">--paginate</span></code>) so this scales beyond
+GitHub’s 100-secret default page size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.get_secret_metadata">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">get_secret_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#get_secret_metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.get_secret_metadata" title="Link to this definition"></a></dt>
+<dd><p>Return the secret’s metadata dict (name / created_at / updated_at), or None.</p>
+<p>GitHub never exposes the value itself — that’s the whole point of
+Actions secrets. Use <a class="reference internal" href="api/scitex_git.html#scitex_git.get_variable" title="scitex_git.get_variable"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_variable()</span></code></a> against a SHA sidecar
+(see <a class="reference internal" href="api/scitex_git.html#scitex_git.set_secret_with_sha_sidecar" title="scitex_git.set_secret_with_sha_sidecar"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_secret_with_sha_sidecar()</span></code></a>) if you need to detect
+value drift.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.set_variable">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">set_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#set_variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.set_variable" title="Link to this definition"></a></dt>
+<dd><p>Create-or-update an Actions variable. Idempotent.</p>
+<p>Variables are visible to anyone with repo read access. Use this
+for non-sensitive metadata (e.g. SHA256 fingerprints of secrets,
+feature flags). NEVER store token material here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.get_variable">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">get_variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#get_variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.get_variable" title="Link to this definition"></a></dt>
+<dd><p>Return the variable’s value, or None if absent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.set_secret_with_sha_sidecar">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">set_secret_with_sha_sidecar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">sidecar_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_SHA256'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#set_secret_with_sha_sidecar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.set_secret_with_sha_sidecar" title="Link to this definition"></a></dt>
+<dd><p>Push the secret AND its SHA256 fingerprint as a public variable.</p>
+<p>Returns the SHA256 hex digest so the caller can show it in CLI
+output. The sidecar variable is named <code class="docutils literal notranslate"><span class="pre">{name}{sidecar_suffix}</span></code> and
+holds the irreversible hash; later
+<code class="docutils literal notranslate"><span class="pre">get_variable(repo,</span> <span class="pre">f&quot;{name}{sidecar_suffix}&quot;)</span></code> lets you tell
+whether the GitHub-side secret matches a local value (compare with
+<code class="docutils literal notranslate"><span class="pre">sha256_hex(local_value)</span></code>).</p>
+<p>The hash itself is not sensitive — it cannot be reversed to the
+original token without a brute-force search of the OAuth/api-key
+namespace, which is computationally infeasible. It IS visible to
+repo readers, so don’t use the sidecar for tokens whose mere
+existence is sensitive (the hash leaks “this token was rotated at
+{time} to a value with hash {h}” but never the value).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.sha256_hex">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">sha256_hex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#sha256_hex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.sha256_hex" title="Link to this definition"></a></dt>
+<dd><p>Return the SHA256 hex digest of <code class="docutils literal notranslate"><span class="pre">value</span></code> (UTF-8).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_git.format_age">
+<span class="sig-prename descclassname"><span class="pre">scitex_git.</span></span><span class="sig-name descname"><span class="pre">format_age</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">updated_iso</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scitex_git/_gh_secrets.html#format_age"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_git.format_age" title="Link to this definition"></a></dt>
+<dd><p>Render an ISO-8601 timestamp as a single-unit human age.</p>
+<p>Picks the largest unit that gives a readable number: seconds for
+very fresh rotations, then minutes, hours, days. Mirrors the
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">relative_date</span></code> style — a single value + unit, no compound
+“1d 4h” form. Returns <code class="docutils literal notranslate"><span class="pre">&quot;?&quot;</span></code> for <code class="docutils literal notranslate"><span class="pre">None</span></code> input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">format_age</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="go">&#39;?&#39;</span>
 </pre></div>
 </div>
 </dd></dl>
