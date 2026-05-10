@@ -9,7 +9,7 @@
 <p align="center"><b>Git operations and utilities — clone, init, branch, remote, retry decorator.</b></p>
 
 <p align="center">
-  <a href="https://scitex-git.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-git</code>
+  <a href="https://scitex-git.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-git[all]</code>
 </p>
 
 <!-- scitex-badges:start -->
