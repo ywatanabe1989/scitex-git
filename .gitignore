@@ -8,13 +8,22 @@ dist/
 .pytest_cache/
 .ruff_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
 .mypy_cache/
 .python-version
 .venv/
 venv/
+.claude/
 docs/sphinx/_build/
 docs/sphinx/api/
 *.swp
 .DS_Store
+
+# scitex-dev tooling state — track config.yaml so CI sees the same
+# audit whitelist as local; everything else under .scitex/ is runtime.
+.scitex/*
+!.scitex/dev/
+.scitex/dev/*
+!.scitex/dev/config.yaml
