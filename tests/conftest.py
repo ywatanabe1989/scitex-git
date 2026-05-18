@@ -49,12 +49,30 @@ def _ensure_subprocess_coverage_shim() -> None:
 _ensure_subprocess_coverage_shim()
 
 
+_GIT_IDENTITY_ENV = {
+    "GIT_AUTHOR_NAME": "Test User",
+    "GIT_AUTHOR_EMAIL": "test@example.com",
+    "GIT_COMMITTER_NAME": "Test User",
+    "GIT_COMMITTER_EMAIL": "test@example.com",
+}
+
+
 @pytest.fixture(autouse=True)
-def _git_identity(monkeypatch):
-    """Set git author/committer env vars so commits work in any environment."""
-    monkeypatch.setenv("GIT_AUTHOR_NAME", "Test User")
-    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "test@example.com")
-    monkeypatch.setenv("GIT_COMMITTER_NAME", "Test User")
-    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "test@example.com")
-    # Also unset any HOME-based config that might pick up an empty user.email
-    yield
+def _git_identity():
+    """Set git author/committer env vars so commits work in any environment.
+
+    Uses save/restore pattern (no monkeypatch) per PA-306 no-mocks rule.
+    """
+    saved: dict[str, str | None] = {
+        key: os.environ.get(key) for key in _GIT_IDENTITY_ENV
+    }
+    for key, value in _GIT_IDENTITY_ENV.items():
+        os.environ[key] = value
+    try:
+        yield
+    finally:
+        for key, prev in saved.items():
+            if prev is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = prev

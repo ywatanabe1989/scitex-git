@@ -12,180 +12,301 @@ from scitex_git._result import BranchResult, CommitResult, GitResult
 class TestGitResult:
     """Tests for GitResult dataclass."""
 
-    def test_create_success_result(self):
+    def test_success_result_records_success_true(self):
+        # Arrange
+        # Act
         result = GitResult(success=True)
+        # Assert
         assert result.success is True
+
+    def test_success_result_defaults_error_to_none(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True)
+        # Assert
         assert result.error is None
+
+    def test_success_result_defaults_stdout_to_none(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True)
+        # Assert
         assert result.stdout is None
+
+    def test_success_result_defaults_stderr_to_none(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True)
+        # Assert
         assert result.stderr is None
 
-    def test_create_failure_result(self):
+    def test_failure_result_records_success_false(self):
+        # Arrange
+        # Act
         result = GitResult(
             success=False,
             error="Operation failed",
             stderr="fatal: error message",
         )
+        # Assert
         assert result.success is False
+
+    def test_failure_result_records_error(self):
+        # Arrange
+        # Act
+        result = GitResult(
+            success=False,
+            error="Operation failed",
+            stderr="fatal: error message",
+        )
+        # Assert
         assert result.error == "Operation failed"
+
+    def test_failure_result_records_stderr(self):
+        # Arrange
+        # Act
+        result = GitResult(
+            success=False,
+            error="Operation failed",
+            stderr="fatal: error message",
+        )
+        # Assert
         assert result.stderr == "fatal: error message"
 
-    def test_create_with_stdout(self):
-        result = GitResult(
-            success=True,
-            stdout="command output",
-        )
-        assert result.stdout == "command output"
+    def test_explicit_stdout_value_is_preserved(self):
+        # Arrange
+        stdout_value = "command output"
+        # Act
+        result = GitResult(success=True, stdout=stdout_value)
+        # Assert
+        assert result.stdout == stdout_value
 
-    def test_create_with_all_fields(self):
+    def test_full_fields_preserves_stderr(self):
+        # Arrange
+        # Act
         result = GitResult(
             success=True,
             error=None,
             stdout="output",
             stderr="warning",
         )
-        assert result.success is True
-        assert result.error is None
-        assert result.stdout == "output"
+        # Assert
         assert result.stderr == "warning"
 
-    def test_dataclass_equality(self):
+    def test_equal_dataclasses_compare_equal(self):
+        # Arrange
         result1 = GitResult(success=True, error=None)
         result2 = GitResult(success=True, error=None)
-        assert result1 == result2
+        # Act
+        equal = result1 == result2
+        # Assert
+        assert equal is True
 
-    def test_dataclass_inequality(self):
+    def test_unequal_dataclasses_compare_not_equal(self):
+        # Arrange
         result1 = GitResult(success=True)
         result2 = GitResult(success=False)
-        assert result1 != result2
+        # Act
+        equal = result1 == result2
+        # Assert
+        assert equal is False
 
 
 class TestCommitResult:
     """Tests for CommitResult dataclass."""
 
-    def test_create_success_with_hash(self):
-        result = CommitResult(
-            success=True,
-            commit_hash="abc123def456",
-        )
-        assert result.success is True
-        assert result.commit_hash == "abc123def456"
+    def test_success_commit_records_hash(self):
+        # Arrange
+        commit_hash = "abc123def456"
+        # Act
+        result = CommitResult(success=True, commit_hash=commit_hash)
+        # Assert
+        assert result.commit_hash == commit_hash
 
-    def test_create_failure_no_hash(self):
-        result = CommitResult(
-            success=False,
-            error="Nothing to commit",
-        )
-        assert result.success is False
+    def test_success_commit_records_success_true(self):
+        # Arrange
+        # Act
+        result = CommitResult(success=True, commit_hash="x")
+        # Assert
+        assert result.success is True
+
+    def test_failure_commit_defaults_hash_to_none(self):
+        # Arrange
+        # Act
+        result = CommitResult(success=False, error="Nothing to commit")
+        # Assert
         assert result.commit_hash is None
+
+    def test_failure_commit_records_error(self):
+        # Arrange
+        # Act
+        result = CommitResult(success=False, error="Nothing to commit")
+        # Assert
         assert result.error == "Nothing to commit"
 
-    def test_inherits_from_git_result(self):
+    def test_commit_result_is_git_result_instance(self):
+        # Arrange
+        # Act
         result = CommitResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_has_git_result_attributes(self):
+    def test_commit_result_exposes_commit_hash_attribute(self):
+        # Arrange
+        # Act
         result = CommitResult(
             success=True,
             stdout="output",
             stderr="warning",
             commit_hash="abc123",
         )
-        assert hasattr(result, "success")
-        assert hasattr(result, "error")
-        assert hasattr(result, "stdout")
-        assert hasattr(result, "stderr")
+        # Assert
         assert hasattr(result, "commit_hash")
 
 
 class TestBranchResult:
     """Tests for BranchResult dataclass."""
 
-    def test_create_success_with_name(self):
-        result = BranchResult(
-            success=True,
-            branch_name="feature/new-feature",
-        )
-        assert result.success is True
-        assert result.branch_name == "feature/new-feature"
+    def test_success_branch_records_branch_name(self):
+        # Arrange
+        branch_name = "feature/new-feature"
+        # Act
+        result = BranchResult(success=True, branch_name=branch_name)
+        # Assert
+        assert result.branch_name == branch_name
 
-    def test_create_failure_no_name(self):
-        result = BranchResult(
-            success=False,
-            error="Branch operation failed",
-        )
-        assert result.success is False
+    def test_success_branch_records_success_true(self):
+        # Arrange
+        # Act
+        result = BranchResult(success=True, branch_name="x")
+        # Assert
+        assert result.success is True
+
+    def test_failure_branch_defaults_name_to_none(self):
+        # Arrange
+        # Act
+        result = BranchResult(success=False, error="Branch operation failed")
+        # Assert
         assert result.branch_name is None
+
+    def test_failure_branch_records_error(self):
+        # Arrange
+        # Act
+        result = BranchResult(success=False, error="Branch operation failed")
+        # Assert
         assert result.error == "Branch operation failed"
 
-    def test_inherits_from_git_result(self):
+    def test_branch_result_is_git_result_instance(self):
+        # Arrange
+        # Act
         result = BranchResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_has_git_result_attributes(self):
+    def test_branch_result_exposes_branch_name_attribute(self):
+        # Arrange
+        # Act
         result = BranchResult(
             success=True,
             stdout="output",
             stderr="warning",
             branch_name="main",
         )
-        assert hasattr(result, "success")
-        assert hasattr(result, "error")
-        assert hasattr(result, "stdout")
-        assert hasattr(result, "stderr")
+        # Assert
         assert hasattr(result, "branch_name")
 
 
 class TestResultInheritance:
     """Tests for result class inheritance."""
 
-    def test_commit_result_is_git_result(self):
+    def test_commit_result_inherits_git_result(self):
+        # Arrange
+        # Act
         result = CommitResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_branch_result_is_git_result(self):
+    def test_branch_result_inherits_git_result(self):
+        # Arrange
+        # Act
         result = BranchResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_all_results_share_common_interface(self):
-        git_result = GitResult(success=True, stdout="out", stderr="err")
-        commit_result = CommitResult(success=True, stdout="out", stderr="err")
-        branch_result = BranchResult(success=True, stdout="out", stderr="err")
+    def test_git_result_has_success_attribute(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True, stdout="out", stderr="err")
+        # Assert
+        assert hasattr(result, "success")
 
-        for result in [git_result, commit_result, branch_result]:
-            assert hasattr(result, "success")
-            assert hasattr(result, "error")
-            assert hasattr(result, "stdout")
-            assert hasattr(result, "stderr")
+    def test_commit_result_has_success_attribute(self):
+        # Arrange
+        # Act
+        result = CommitResult(success=True, stdout="out", stderr="err")
+        # Assert
+        assert hasattr(result, "success")
+
+    def test_branch_result_has_success_attribute(self):
+        # Arrange
+        # Act
+        result = BranchResult(success=True, stdout="out", stderr="err")
+        # Assert
+        assert hasattr(result, "success")
 
 
 class TestResultUsagePatterns:
     """Tests for common usage patterns."""
 
-    def test_conditional_on_success(self):
+    def test_success_result_carries_commit_hash_when_read(self):
+        # Arrange
         success_result = CommitResult(success=True, commit_hash="abc123")
+        # Act
+        observed_hash = success_result.commit_hash if success_result.success else None
+        # Assert
+        assert observed_hash == "abc123"
+
+    def test_failure_result_carries_error_when_read(self):
+        # Arrange
         failure_result = CommitResult(success=False, error="Failed")
+        # Act
+        observed_error = (
+            failure_result.error if not failure_result.success else None
+        )
+        # Assert
+        assert observed_error == "Failed"
 
-        if success_result.success:
-            assert success_result.commit_hash == "abc123"
-
-        if not failure_result.success:
-            assert failure_result.error == "Failed"
-
-    def test_result_as_context_data(self):
+    def test_result_branch_name_propagates_into_context_dict(self):
+        # Arrange
         result = BranchResult(
             success=True,
             branch_name="develop",
             stdout="Switched to branch 'develop'",
         )
-
+        # Act
         context = {
             "success": result.success,
             "branch": result.branch_name,
             "output": result.stdout,
         }
-
-        assert context["success"] is True
+        # Assert
         assert context["branch"] == "develop"
+
+    def test_result_success_propagates_into_context_dict(self):
+        # Arrange
+        result = BranchResult(
+            success=True,
+            branch_name="develop",
+            stdout="Switched to branch 'develop'",
+        )
+        # Act
+        context = {
+            "success": result.success,
+            "branch": result.branch_name,
+            "output": result.stdout,
+        }
+        # Assert
+        assert context["success"] is True
 
 
 # EOF
@@ -196,81 +317,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_result.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-code/src/scitex/git/result.py
-#
-# """
-# Result dataclasses for git operations.
-# """
-#
-# from dataclasses import dataclass
-# from typing import Optional
-#
-#
-# @dataclass
-# class GitResult:
-#     """
-#     Result of a git operation.
-#
-#     Attributes
-#     ----------
-#     success : bool
-#         Whether operation succeeded
-#     error : Optional[str]
-#         Error message if operation failed
-#     stdout : Optional[str]
-#         Standard output from git command
-#     stderr : Optional[str]
-#         Standard error from git command
-#     """
-#
-#     success: bool
-#     error: Optional[str] = None
-#     stdout: Optional[str] = None
-#     stderr: Optional[str] = None
-#
-#
-# @dataclass
-# class CommitResult(GitResult):
-#     """
-#     Result of a git commit operation.
-#
-#     Attributes
-#     ----------
-#     commit_hash : Optional[str]
-#         Hash of created commit if successful
-#     """
-#
-#     commit_hash: Optional[str] = None
-#
-#
-# @dataclass
-# class BranchResult(GitResult):
-#     """
-#     Result of a git branch operation.
-#
-#     Attributes
-#     ----------
-#     branch_name : Optional[str]
-#         Name of created or renamed branch if successful
-#     """
-#
-#     branch_name: Optional[str] = None
-#
-#
-# __all__ = [
-#     "GitResult",
-#     "CommitResult",
-#     "BranchResult",
-# ]
-#
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_result.py
-# --------------------------------------------------------------------------------

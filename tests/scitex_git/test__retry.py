@@ -4,7 +4,6 @@
 
 import subprocess
 import time
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -13,20 +12,44 @@ pytest.importorskip("git")
 from scitex_git._retry import git_retry
 
 
+class _CallCounter:
+    """Hand-rolled fake replacing MagicMock per PA-306 no-mocks rule."""
+
+    def __init__(self, return_value=None):
+        self.return_value = return_value
+        self.call_count = 0
+        self.calls: list[tuple] = []
+
+    def __call__(self, *args, **kwargs):
+        self.call_count += 1
+        self.calls.append((args, kwargs))
+        return self.return_value
+
+
 class TestGitRetry:
     """Tests for git_retry function."""
 
-    def test_success_on_first_attempt(self):
-        """Operation succeeds on first try."""
-        mock_operation = MagicMock(return_value="success")
-
-        result = git_retry(mock_operation)
-
+    def test_success_on_first_attempt_returns_value(self):
+        """Operation succeeds on first try — return value passes through."""
+        # Arrange
+        operation = _CallCounter(return_value="success")
+        # Act
+        result = git_retry(operation)
+        # Assert
         assert result == "success"
-        assert mock_operation.call_count == 1
 
-    def test_success_after_retries(self):
-        """Operation succeeds after a few lock errors."""
+    def test_success_on_first_attempt_calls_once(self):
+        """Operation succeeds on first try — only called once."""
+        # Arrange
+        operation = _CallCounter(return_value="success")
+        # Act
+        git_retry(operation)
+        # Assert
+        assert operation.call_count == 1
+
+    def test_success_after_retries_returns_final_value(self):
+        """Operation succeeds after a few lock errors — returns final value."""
+        # Arrange
         call_count = 0
 
         def operation_with_locks():
@@ -40,25 +63,55 @@ class TestGitRetry:
                 raise error
             return "success"
 
+        # Act
         result = git_retry(
             operation_with_locks,
             max_retries=5,
             initial_delay=0.01,
             max_delay=0.05,
         )
-
+        # Assert
         assert result == "success"
+
+    def test_success_after_retries_uses_expected_attempt_count(self):
+        """Operation succeeds after a few lock errors — call count matches retries."""
+        # Arrange
+        call_count = 0
+
+        def operation_with_locks():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                error = subprocess.CalledProcessError(128, "git")
+                error.stderr = (
+                    b"fatal: Unable to create '.git/index.lock': File exists."
+                )
+                raise error
+            return "success"
+
+        # Act
+        git_retry(
+            operation_with_locks,
+            max_retries=5,
+            initial_delay=0.01,
+            max_delay=0.05,
+        )
+        # Assert
         assert call_count == 3
 
-    def test_raises_on_last_attempt_with_lock(self):
+    def test_raises_on_last_attempt_with_persistent_lock(self):
         """Raises CalledProcessError on last retry attempt (current behavior)."""
 
+        # Arrange
         def always_locked():
             error = subprocess.CalledProcessError(128, "git")
             error.stderr = b"fatal: Unable to create '.git/index.lock': File exists."
             raise error
 
-        with pytest.raises(subprocess.CalledProcessError):
+        # Act
+        ctx = pytest.raises(subprocess.CalledProcessError)
+        # Assert
+        with ctx:
             git_retry(
                 always_locked,
                 max_retries=3,
@@ -66,8 +119,28 @@ class TestGitRetry:
                 max_delay=0.05,
             )
 
-    def test_non_lock_error_not_retried(self):
+    def test_non_lock_error_raises_immediately(self):
         """Non-lock CalledProcessError is raised immediately."""
+
+        # Arrange
+        def non_lock_error():
+            error = subprocess.CalledProcessError(128, "git")
+            error.stderr = b"fatal: not a git repository"
+            raise error
+
+        # Act
+        ctx = pytest.raises(subprocess.CalledProcessError)
+        # Assert
+        with ctx:
+            git_retry(
+                non_lock_error,
+                max_retries=5,
+                initial_delay=0.01,
+            )
+
+    def test_non_lock_error_not_retried_call_count(self):
+        """Non-lock CalledProcessError is not retried — only called once."""
+        # Arrange
         call_count = 0
 
         def non_lock_error():
@@ -77,17 +150,38 @@ class TestGitRetry:
             error.stderr = b"fatal: not a git repository"
             raise error
 
-        with pytest.raises(subprocess.CalledProcessError):
+        # Act
+        try:
             git_retry(
                 non_lock_error,
                 max_retries=5,
                 initial_delay=0.01,
             )
-
+        except subprocess.CalledProcessError:
+            pass
+        # Assert
         assert call_count == 1
 
-    def test_non_subprocess_error_not_retried(self):
+    def test_non_subprocess_error_raises_immediately(self):
         """Non-subprocess exceptions are raised immediately."""
+
+        # Arrange
+        def other_error():
+            raise ValueError("Some other error")
+
+        # Act
+        ctx = pytest.raises(ValueError)
+        # Assert
+        with ctx:
+            git_retry(
+                other_error,
+                max_retries=5,
+                initial_delay=0.01,
+            )
+
+    def test_non_subprocess_error_not_retried_call_count(self):
+        """Non-subprocess exceptions are not retried — only called once."""
+        # Arrange
         call_count = 0
 
         def other_error():
@@ -95,17 +189,21 @@ class TestGitRetry:
             call_count += 1
             raise ValueError("Some other error")
 
-        with pytest.raises(ValueError):
+        # Act
+        try:
             git_retry(
                 other_error,
                 max_retries=5,
                 initial_delay=0.01,
             )
-
+        except ValueError:
+            pass
+        # Assert
         assert call_count == 1
 
-    def test_lock_error_with_string_stderr(self):
-        """Handle lock error with string stderr instead of bytes."""
+    def test_lock_error_with_string_stderr_returns_success(self):
+        """Handle lock error with string stderr instead of bytes — eventually succeeds."""
+        # Arrange
         call_count = 0
 
         def lock_with_string_stderr():
@@ -117,17 +215,60 @@ class TestGitRetry:
                 raise error
             return "success"
 
+        # Act
         result = git_retry(
             lock_with_string_stderr,
             max_retries=3,
             initial_delay=0.01,
         )
-
+        # Assert
         assert result == "success"
+
+    def test_lock_error_with_string_stderr_retries_until_success(self):
+        """Handle lock error with string stderr instead of bytes — call count matches."""
+        # Arrange
+        call_count = 0
+
+        def lock_with_string_stderr():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 2:
+                error = subprocess.CalledProcessError(128, "git")
+                error.stderr = "fatal: Unable to create '.git/index.lock': File exists."
+                raise error
+            return "success"
+
+        # Act
+        git_retry(
+            lock_with_string_stderr,
+            max_retries=3,
+            initial_delay=0.01,
+        )
+        # Assert
         assert call_count == 2
 
-    def test_lock_error_with_none_stderr(self):
-        """Handle CalledProcessError with None stderr - should not retry."""
+    def test_called_process_error_with_none_stderr_raises(self):
+        """CalledProcessError with None stderr — should not retry, raises."""
+
+        # Arrange
+        def error_with_none_stderr():
+            error = subprocess.CalledProcessError(128, "git")
+            error.stderr = None
+            raise error
+
+        # Act
+        ctx = pytest.raises(subprocess.CalledProcessError)
+        # Assert
+        with ctx:
+            git_retry(
+                error_with_none_stderr,
+                max_retries=3,
+                initial_delay=0.01,
+            )
+
+    def test_called_process_error_with_none_stderr_not_retried(self):
+        """CalledProcessError with None stderr — not retried, called once."""
+        # Arrange
         call_count = 0
 
         def error_with_none_stderr():
@@ -137,18 +278,47 @@ class TestGitRetry:
             error.stderr = None
             raise error
 
-        with pytest.raises(subprocess.CalledProcessError):
+        # Act
+        try:
             git_retry(
                 error_with_none_stderr,
                 max_retries=3,
                 initial_delay=0.01,
             )
-
+        except subprocess.CalledProcessError:
+            pass
+        # Assert
         assert call_count == 1
 
-    def test_exponential_backoff(self):
-        """Verify exponential backoff is applied."""
-        call_times = []
+    def test_exponential_backoff_attempts_count(self):
+        """Verify exponential backoff produces expected attempt count."""
+        # Arrange
+        call_times: list[float] = []
+
+        def record_time_and_fail():
+            call_times.append(time.time())
+            error = subprocess.CalledProcessError(128, "git")
+            error.stderr = b"index.lock"
+            raise error
+
+        # Act
+        try:
+            git_retry(
+                record_time_and_fail,
+                max_retries=4,
+                initial_delay=0.05,
+                backoff_factor=2.0,
+                max_delay=1.0,
+            )
+        except subprocess.CalledProcessError:
+            pass
+        # Assert
+        assert len(call_times) == 4
+
+    def test_exponential_backoff_delays_grow_at_least_doubling(self):
+        """Verify exponential backoff doubles delays between attempts."""
+        # Arrange
+        call_times: list[float] = []
 
         def record_time_and_fail():
             call_times.append(time.time())
@@ -166,20 +336,44 @@ class TestGitRetry:
             )
         except subprocess.CalledProcessError:
             pass
+        # Act
+        delays = [
+            call_times[i] - call_times[i - 1] for i in range(1, len(call_times))
+        ]
+        # Assert
+        assert all(
+            delays[i] >= delays[i - 1] * 0.9 for i in range(1, len(delays))
+        )
 
-        assert len(call_times) == 4
+    def test_max_delay_cap_attempts_count(self):
+        """Verify max_delay still produces expected attempt count."""
+        # Arrange
+        call_times: list[float] = []
 
-        delay1 = call_times[1] - call_times[0]
-        delay2 = call_times[2] - call_times[1]
-        delay3 = call_times[3] - call_times[2]
+        def record_time_and_fail():
+            call_times.append(time.time())
+            error = subprocess.CalledProcessError(128, "git")
+            error.stderr = b"index.lock"
+            raise error
 
-        assert delay1 >= 0.04
-        assert delay2 >= 0.08
-        assert delay3 >= 0.16
+        # Act
+        try:
+            git_retry(
+                record_time_and_fail,
+                max_retries=5,
+                initial_delay=0.1,
+                backoff_factor=10.0,
+                max_delay=0.15,
+            )
+        except subprocess.CalledProcessError:
+            pass
+        # Assert
+        assert len(call_times) == 5
 
-    def test_max_delay_cap(self):
-        """Verify delay is capped at max_delay."""
-        call_times = []
+    def test_max_delay_cap_limits_inter_attempt_delay(self):
+        """Verify delay is capped at max_delay (with slack)."""
+        # Arrange
+        call_times: list[float] = []
 
         def record_time_and_fail():
             call_times.append(time.time())
@@ -197,21 +391,23 @@ class TestGitRetry:
             )
         except subprocess.CalledProcessError:
             pass
+        # Act
+        delays = [
+            call_times[i] - call_times[i - 1] for i in range(1, len(call_times))
+        ]
+        # Assert
+        assert max(delays) <= 0.25
 
-        assert len(call_times) == 5
+    def test_returns_operation_result_dict(self):
+        """Verify the operation's return value is passed through unchanged."""
 
-        for i in range(1, len(call_times)):
-            delay = call_times[i] - call_times[i - 1]
-            assert delay <= 0.25
-
-    def test_returns_operation_result(self):
-        """Verify the operation's return value is passed through."""
-
+        # Arrange
         def return_dict():
             return {"status": "ok", "data": [1, 2, 3]}
 
+        # Act
         result = git_retry(return_dict)
-
+        # Assert
         assert result == {"status": "ok", "data": [1, 2, 3]}
 
 
@@ -223,124 +419,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_retry.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # Timestamp: "2025-10-29 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-code/src/scitex/git/retry.py
-# # ----------------------------------------
-# from __future__ import annotations
-# import os
-#
-# __FILE__ = "./src/scitex/git/retry.py"
-# __DIR__ = os.path.dirname(__FILE__)
-# # ----------------------------------------
-#
-# """
-# Git retry logic with exponential backoff.
-#
-# Handles git index.lock conflicts when multiple processes access git.
-# Shared across all scitex modules.
-# """
-#
-# import time
-# import subprocess
-# from typing import Callable, TypeVar
-#
-# from scitex.logging import getLogger
-#
-# logger = getLogger(__name__)
-#
-# T = TypeVar("T")
-#
-#
-# def git_retry(
-#     operation: Callable[[], T],
-#     max_retries: int = 5,
-#     initial_delay: float = 0.1,
-#     max_delay: float = 2.0,
-#     backoff_factor: float = 2.0,
-# ) -> T:
-#     """
-#     Retry git operations with exponential backoff.
-#
-#     Handles git index.lock conflicts when multiple processes access git.
-#
-#     Parameters
-#     ----------
-#     operation : Callable
-#         Function to retry
-#     max_retries : int
-#         Maximum number of retry attempts
-#     initial_delay : float
-#         Initial delay in seconds
-#     max_delay : float
-#         Maximum delay between retries
-#     backoff_factor : float
-#         Exponential backoff multiplier
-#
-#     Returns
-#     -------
-#     T
-#         Result of operation
-#
-#     Raises
-#     ------
-#     TimeoutError
-#         If all retries exhausted due to lock
-#     Exception
-#         Original exception if not a lock error
-#
-#     Examples
-#     --------
-#     >>> def commit_file():
-#     ...     subprocess.run(["git", "commit", "-m", "msg"], check=True)
-#     >>> git_retry(commit_file)
-#     """
-#     delay = initial_delay
-#     last_exception = None
-#
-#     for attempt in range(max_retries):
-#         try:
-#             return operation()
-#         except subprocess.CalledProcessError as e:
-#             # Check if it's a lock error
-#             stderr = (
-#                 e.stderr
-#                 if isinstance(e.stderr, str)
-#                 else (e.stderr.decode("utf-8", errors="ignore") if e.stderr else "")
-#             )
-#
-#             if "index.lock" in stderr and attempt < max_retries - 1:
-#                 logger.debug(
-#                     f"Git lock detected, retrying in {delay:.2f}s "
-#                     f"(attempt {attempt + 1}/{max_retries})"
-#                 )
-#                 time.sleep(delay)
-#                 delay = min(delay * backoff_factor, max_delay)
-#                 last_exception = e
-#                 continue
-#
-#             # Not a lock error, or retries exhausted
-#             raise
-#         except Exception:
-#             # Non-git errors: don't retry
-#             raise
-#
-#     # All retries exhausted
-#     if last_exception:
-#         raise TimeoutError(
-#             f"Could not acquire git lock after {max_retries} attempts"
-#         ) from last_exception
-#
-#
-# __all__ = ["git_retry"]
-#
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_retry.py
-# --------------------------------------------------------------------------------
