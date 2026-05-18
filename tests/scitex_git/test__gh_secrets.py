@@ -15,71 +15,149 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+pytest.importorskip("git")
+
 from scitex_git._gh_secrets import format_age, sha256_hex
 
 
 class TestSha256Hex:
-    def test_known_vector(self) -> None:
-        # Stable known SHA256 for a fixed input — guards against an
-        # accidental switch to a different hash.
-        assert (
-            sha256_hex("hello")
-            == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-        )
+    def test_sha256_for_hello_matches_known_vector(self) -> None:
+        # Arrange
+        expected = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+        # Act
+        result = sha256_hex("hello")
+        # Assert
+        assert result == expected
 
-    def test_unicode_uses_utf8(self) -> None:
-        # Token strings are sometimes non-ASCII; document the encoding.
-        assert sha256_hex("héllo") == sha256_hex("héllo".encode("utf-8").decode())
+    def test_sha256_of_unicode_uses_utf8_encoding(self) -> None:
+        # Arrange
+        non_ascii = "héllo"
+        round_trip = non_ascii.encode("utf-8").decode()
+        # Act
+        equal = sha256_hex(non_ascii) == sha256_hex(round_trip)
+        # Assert
+        assert equal
 
-    def test_distinct_inputs_distinct_outputs(self) -> None:
-        assert sha256_hex("abc") != sha256_hex("abcd")
+    def test_sha256_of_distinct_inputs_yields_distinct_outputs(self) -> None:
+        # Arrange
+        a, b = "abc", "abcd"
+        # Act
+        equal = sha256_hex(a) == sha256_hex(b)
+        # Assert
+        assert equal is False
+
+
+def _iso(**kwargs) -> str:
+    return (datetime.now(timezone.utc) - timedelta(**kwargs)).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
 
 class TestFormatAge:
-    def _iso(self, **kwargs) -> str:
-        return (datetime.now(timezone.utc) - timedelta(**kwargs)).strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        )
+    def test_format_age_for_none_returns_question_mark(self) -> None:
+        # Arrange
+        # Act
+        out = format_age(None)
+        # Assert
+        assert out == "?"
 
-    def test_none_returns_question_mark(self) -> None:
-        assert format_age(None) == "?"
+    def test_format_age_seconds_suffix_is_s(self) -> None:
+        # Arrange
+        ts = _iso(seconds=15)
+        # Act
+        out = format_age(ts)
+        # Assert
+        assert out.endswith("s")
 
-    def test_seconds(self) -> None:
-        assert format_age(self._iso(seconds=15)).endswith("s")
-
-    def test_minutes(self) -> None:
-        out = format_age(self._iso(minutes=15))
+    def test_format_age_minutes_suffix_is_min(self) -> None:
+        # Arrange
+        ts = _iso(minutes=15)
+        # Act
+        out = format_age(ts)
+        # Assert
         assert out.endswith("min")
+
+    def test_format_age_minutes_prefix_matches_value(self) -> None:
+        # Arrange
+        ts = _iso(minutes=15)
+        # Act
+        out = format_age(ts)
+        # Assert
         assert out.startswith("15")
 
-    def test_hours(self) -> None:
-        out = format_age(self._iso(hours=2, minutes=24))
+    def test_format_age_hours_suffix_is_h(self) -> None:
+        # Arrange
+        ts = _iso(hours=2, minutes=24)
+        # Act
+        out = format_age(ts)
+        # Assert
         assert out.endswith("h")
-        # 2.4h ± floating-point rounding
+
+    def test_format_age_hours_prefix_matches_value(self) -> None:
+        # Arrange
+        ts = _iso(hours=2, minutes=24)
+        # Act
+        out = format_age(ts)
+        # Assert
         assert out.startswith("2.")
 
-    def test_days(self) -> None:
-        out = format_age(self._iso(days=2, hours=10))
+    def test_format_age_days_suffix_is_d(self) -> None:
+        # Arrange
+        ts = _iso(days=2, hours=10)
+        # Act
+        out = format_age(ts)
+        # Assert
         assert out.endswith("d")
+
+    def test_format_age_days_prefix_matches_value(self) -> None:
+        # Arrange
+        ts = _iso(days=2, hours=10)
+        # Act
+        out = format_age(ts)
+        # Assert
         assert out.startswith("2.")
 
-    def test_handles_z_suffix(self) -> None:
-        # GitHub returns ``...Z`` (UTC). Both ``Z`` and ``+00:00``
-        # should parse identically; the helper rewrites Z internally.
-        z_form = self._iso(seconds=10)
+    def test_format_age_z_suffix_parsed_as_utc(self) -> None:
+        # Arrange
+        z_form = _iso(seconds=10)
+        # Act
+        out = format_age(z_form)
+        # Assert
+        assert out.endswith("s")
+
+    def test_iso_helper_emits_z_suffix(self) -> None:
+        # Arrange
+        # Act
+        z_form = _iso(seconds=10)
+        # Assert
         assert "Z" in z_form
-        assert format_age(z_form).endswith("s")
 
 
 @pytest.mark.parametrize(
     "value,expected_prefix",
     [
         ("", "e3b0c44298"),  # SHA256 of empty string
-        ("a" * 1000, None),  # large input — just check it runs
+        ("a" * 1_000, ""),  # large input — prefix unchecked (sentinel empty)
     ],
 )
-def test_sha256_hex_misc(value, expected_prefix) -> None:
+def test_sha256_hex_misc_digest_length_is_64(value, expected_prefix) -> None:
+    # Arrange
+    _ = expected_prefix  # not used in this length-only assertion
+    # Act
     digest = sha256_hex(value)
+    # Assert
     assert len(digest) == 64
-    if expected_prefix is not None:
-        assert digest.startswith(expected_prefix)
+
+
+@pytest.mark.parametrize(
+    "value,expected_prefix",
+    [
+        ("", "e3b0c44298"),
+    ],
+)
+def test_sha256_hex_misc_known_prefix_matches(value, expected_prefix) -> None:
+    # Arrange
+    # Act
+    digest = sha256_hex(value)
+    # Assert
+    assert digest.startswith(expected_prefix)

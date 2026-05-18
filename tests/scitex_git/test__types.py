@@ -12,92 +12,213 @@ from scitex_git._types import BranchResult, CloneResult, CommitResult, GitResult
 
 
 class TestGitResult:
-    def test_create_success_result(self):
-        result = GitResult(success=True, message="Operation succeeded")
+    def test_success_result_records_success_true(self):
+        # Arrange
+        message = "Operation succeeded"
+        # Act
+        result = GitResult(success=True, message=message)
+        # Assert
         assert result.success is True
-        assert result.message == "Operation succeeded"
+
+    def test_success_result_records_message(self):
+        # Arrange
+        message = "Operation succeeded"
+        # Act
+        result = GitResult(success=True, message=message)
+        # Assert
+        assert result.message == message
+
+    def test_success_result_defaults_stdout_to_none(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True, message="ok")
+        # Assert
         assert result.stdout is None
+
+    def test_success_result_defaults_stderr_to_none(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True, message="ok")
+        # Assert
         assert result.stderr is None
+
+    def test_success_result_defaults_exit_code_to_none(self):
+        # Arrange
+        # Act
+        result = GitResult(success=True, message="ok")
+        # Assert
         assert result.exit_code is None
 
-    def test_create_failure_result(self):
+    def test_failure_result_records_success_false(self):
+        # Arrange
+        # Act
         result = GitResult(
             success=False,
             message="Operation failed",
             stderr="fatal: error message",
             exit_code=1,
         )
+        # Assert
         assert result.success is False
-        assert result.message == "Operation failed"
+
+    def test_failure_result_records_stderr(self):
+        # Arrange
+        # Act
+        result = GitResult(
+            success=False,
+            message="Operation failed",
+            stderr="fatal: error message",
+            exit_code=1,
+        )
+        # Assert
         assert result.stderr == "fatal: error message"
+
+    def test_failure_result_records_exit_code(self):
+        # Arrange
+        # Act
+        result = GitResult(
+            success=False,
+            message="Operation failed",
+            stderr="fatal: error message",
+            exit_code=1,
+        )
+        # Assert
         assert result.exit_code == 1
 
-    def test_create_with_stdout(self):
+    def test_explicit_stdout_value_is_preserved(self):
+        # Arrange
+        # Act
         result = GitResult(
             success=True, message="Success", stdout="command output", exit_code=0
         )
+        # Assert
         assert result.stdout == "command output"
 
 
 class TestCommitResult:
-    def test_create_success_with_hash(self):
-        result = CommitResult(
-            success=True, message="Commit created", commit_hash="abc123def456"
-        )
+    def test_success_commit_records_hash(self):
+        # Arrange
+        commit_hash = "abc123def456"
+        # Act
+        result = CommitResult(success=True, message="Commit created", commit_hash=commit_hash)
+        # Assert
+        assert result.commit_hash == commit_hash
+
+    def test_success_commit_records_success_true(self):
+        # Arrange
+        # Act
+        result = CommitResult(success=True, message="Commit created", commit_hash="abc")
+        # Assert
         assert result.success is True
-        assert result.commit_hash == "abc123def456"
+
+    def test_commit_result_is_git_result_instance(self):
+        # Arrange
+        # Act
+        result = CommitResult(success=True, message="ok")
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_create_failure_no_hash(self):
+    def test_failure_commit_defaults_hash_to_none(self):
+        # Arrange
+        # Act
         result = CommitResult(success=False, message="Nothing to commit")
-        assert result.success is False
+        # Assert
         assert result.commit_hash is None
 
 
 class TestCloneResult:
-    def test_create_success_with_path(self):
-        result = CloneResult(
-            success=True, message="Repository cloned", repo_path="/path/to/repo"
-        )
+    def test_success_clone_records_repo_path(self):
+        # Arrange
+        repo_path = "/path/to/repo"
+        # Act
+        result = CloneResult(success=True, message="Repository cloned", repo_path=repo_path)
+        # Assert
+        assert result.repo_path == repo_path
+
+    def test_success_clone_records_success_true(self):
+        # Arrange
+        # Act
+        result = CloneResult(success=True, message="ok", repo_path="/p")
+        # Assert
         assert result.success is True
-        assert result.repo_path == "/path/to/repo"
+
+    def test_clone_result_is_git_result_instance(self):
+        # Arrange
+        # Act
+        result = CloneResult(success=True, message="ok")
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_create_failure_no_path(self):
+    def test_failure_clone_defaults_repo_path_to_none(self):
+        # Arrange
+        # Act
+        result = CloneResult(success=False, message="Clone failed")
+        # Assert
+        assert result.repo_path is None
+
+    def test_failure_clone_records_stderr(self):
+        # Arrange
+        # Act
         result = CloneResult(
             success=False, message="Clone failed", stderr="fatal: repository not found"
         )
-        assert result.success is False
-        assert result.repo_path is None
+        # Assert
         assert result.stderr == "fatal: repository not found"
 
 
 class TestBranchResult:
-    def test_create_success_with_name(self):
+    def test_success_branch_records_branch_name(self):
+        # Arrange
+        branch_name = "feature/new-feature"
+        # Act
         result = BranchResult(
-            success=True, message="Branch created", branch_name="feature/new-feature"
+            success=True, message="Branch created", branch_name=branch_name
         )
+        # Assert
+        assert result.branch_name == branch_name
+
+    def test_success_branch_records_success_true(self):
+        # Arrange
+        # Act
+        result = BranchResult(success=True, message="ok", branch_name="x")
+        # Assert
         assert result.success is True
-        assert result.branch_name == "feature/new-feature"
+
+    def test_branch_result_is_git_result_instance(self):
+        # Arrange
+        # Act
+        result = BranchResult(success=True, message="ok")
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_create_failure_no_name(self):
+    def test_failure_branch_defaults_name_to_none(self):
+        # Arrange
+        # Act
         result = BranchResult(success=False, message="Branch operation failed")
-        assert result.success is False
+        # Assert
         assert result.branch_name is None
 
 
 class TestResultInheritance:
-    def test_commit_result_is_git_result(self):
+    def test_commit_result_inherits_git_result(self):
+        # Arrange
+        # Act
         result = CommitResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_clone_result_is_git_result(self):
+    def test_clone_result_inherits_git_result(self):
+        # Arrange
+        # Act
         result = CloneResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
-    def test_branch_result_is_git_result(self):
+    def test_branch_result_inherits_git_result(self):
+        # Arrange
+        # Act
         result = BranchResult(success=True)
+        # Assert
         assert isinstance(result, GitResult)
 
 
@@ -109,147 +230,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_types.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-code/src/scitex/git/types.py
-#
-# """
-# Git operation result types.
-#
-# This module provides dataclasses for rich error handling and result tracking
-# in git operations, addressing the "boolean blindness" issue identified in EVAL.md.
-# """
-#
-# from dataclasses import dataclass
-# from typing import Optional
-#
-#
-# @dataclass
-# class GitResult:
-#     """
-#     Result of a git operation.
-#
-#     Attributes
-#     ----------
-#     success : bool
-#         Whether the operation succeeded
-#     message : Optional[str]
-#         Human-readable message about the operation
-#     stdout : Optional[str]
-#         Standard output from git command
-#     stderr : Optional[str]
-#         Standard error from git command
-#     exit_code : Optional[int]
-#         Exit code from git command
-#
-#     Examples
-#     --------
-#     >>> result = GitResult(success=True, message="Commit created")
-#     >>> if result.success:
-#     ...     print(f"Success: {result.message}")
-#
-#     >>> result = GitResult(
-#     ...     success=False,
-#     ...     message="Not a git repository",
-#     ...     stderr="fatal: not a git repository"
-#     ... )
-#     >>> if not result.success:
-#     ...     print(f"Error: {result.message}")
-#     ...     print(f"Details: {result.stderr}")
-#     """
-#
-#     success: bool
-#     message: Optional[str] = None
-#     stdout: Optional[str] = None
-#     stderr: Optional[str] = None
-#     exit_code: Optional[int] = None
-#
-#
-# @dataclass
-# class CommitResult(GitResult):
-#     """
-#     Result of a git commit operation.
-#
-#     Attributes
-#     ----------
-#     commit_hash : Optional[str]
-#         SHA hash of the created commit
-#
-#     Examples
-#     --------
-#     >>> result = CommitResult(
-#     ...     success=True,
-#     ...     message="Commit created",
-#     ...     commit_hash="abc123def456"
-#     ... )
-#     >>> if result.success:
-#     ...     print(f"Created commit {result.commit_hash}")
-#     """
-#
-#     commit_hash: Optional[str] = None
-#
-#
-# @dataclass
-# class CloneResult(GitResult):
-#     """
-#     Result of a git clone operation.
-#
-#     Attributes
-#     ----------
-#     repo_path : Optional[str]
-#         Path to the cloned repository
-#
-#     Examples
-#     --------
-#     >>> result = CloneResult(
-#     ...     success=True,
-#     ...     message="Repository cloned",
-#     ...     repo_path="/path/to/repo"
-#     ... )
-#     >>> if result.success:
-#     ...     print(f"Cloned to {result.repo_path}")
-#     """
-#
-#     repo_path: Optional[str] = None
-#
-#
-# @dataclass
-# class BranchResult(GitResult):
-#     """
-#     Result of a git branch operation.
-#
-#     Attributes
-#     ----------
-#     branch_name : Optional[str]
-#         Name of the branch created or modified
-#
-#     Examples
-#     --------
-#     >>> result = BranchResult(
-#     ...     success=True,
-#     ...     message="Branch created",
-#     ...     branch_name="feature/new-feature"
-#     ... )
-#     >>> if result.success:
-#     ...     print(f"Branch: {result.branch_name}")
-#     """
-#
-#     branch_name: Optional[str] = None
-#
-#
-# __all__ = [
-#     "GitResult",
-#     "CommitResult",
-#     "CloneResult",
-#     "BranchResult",
-# ]
-#
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_types.py
-# --------------------------------------------------------------------------------

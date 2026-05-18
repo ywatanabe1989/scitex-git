@@ -7,9 +7,19 @@ from pathlib import Path
 QUICKSTART = Path(__file__).parents[2] / "examples" / "quickstart.py"
 
 
-def test_quickstart_compiles():
-    assert QUICKSTART.is_file(), f"missing {QUICKSTART}"
-    subprocess.run(
-        [sys.executable, "-m", "py_compile", str(QUICKSTART)],
-        check=True,
-    )
+def test_quickstart_script_file_exists_on_disk():
+    # Arrange
+    expected = QUICKSTART
+    # Act
+    is_file = expected.is_file()
+    # Assert
+    assert is_file, f"missing {expected}"
+
+
+def test_quickstart_script_passes_py_compile():
+    # Arrange
+    cmd = [sys.executable, "-m", "py_compile", str(QUICKSTART)]
+    # Act
+    completed = subprocess.run(cmd, check=False)
+    # Assert
+    assert completed.returncode == 0

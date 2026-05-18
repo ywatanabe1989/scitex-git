@@ -12,14 +12,29 @@ from scitex_git._constants import EXIT_FAILURE, EXIT_SUCCESS
 
 
 class TestConstants:
-    def test_exit_success_value(self):
-        assert EXIT_SUCCESS == 0
+    def test_exit_success_value_is_zero(self):
+        # Arrange
+        expected = 0
+        # Act
+        value = EXIT_SUCCESS
+        # Assert
+        assert value == expected
 
-    def test_exit_failure_value(self):
-        assert EXIT_FAILURE == 1
+    def test_exit_failure_value_is_one(self):
+        # Arrange
+        expected = 1
+        # Act
+        value = EXIT_FAILURE
+        # Assert
+        assert value == expected
 
-    def test_exit_values_different(self):
-        assert EXIT_SUCCESS != EXIT_FAILURE
+    def test_exit_success_and_failure_differ(self):
+        # Arrange
+        a, b = EXIT_SUCCESS, EXIT_FAILURE
+        # Act
+        equal = a == b
+        # Assert
+        assert equal is False
 
 
 # EOF
@@ -30,28 +45,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_constants.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-code/src/scitex/git/constants.py
-#
-# """
-# Constants for git module.
-# """
-#
-# EXIT_SUCCESS = 0
-# EXIT_FAILURE = 1
-#
-# __all__ = [
-#     "EXIT_SUCCESS",
-#     "EXIT_FAILURE",
-# ]
-#
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_constants.py
-# --------------------------------------------------------------------------------

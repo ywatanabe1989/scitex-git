@@ -15,29 +15,39 @@ from scitex_git._utils import _in_directory
 
 
 class TestUtils:
-    def test_in_directory_context(self):
-        cwd_original = Path.cwd()
+    def test_in_directory_changes_cwd_inside_block(self):
+        # Arrange
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir).resolve()
+            # Act
+            with _in_directory(temp_path):
+                inside = Path.cwd()
+            # Assert
+            assert inside == temp_path
 
+    def test_in_directory_restores_cwd_after_block(self):
+        # Arrange
+        cwd_original = Path.cwd()
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-
+            # Act
             with _in_directory(temp_path):
-                assert Path.cwd() == temp_path
-
+                pass
+            # Assert
             assert Path.cwd() == cwd_original
 
-    def test_in_directory_restore_on_exception(self):
+    def test_in_directory_restores_cwd_on_exception(self):
+        # Arrange
         cwd_original = Path.cwd()
-
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
-
+            # Act
             try:
                 with _in_directory(temp_path):
                     raise ValueError("test exception")
             except ValueError:
                 pass
-
+            # Assert
             assert Path.cwd() == cwd_original
 
 
@@ -49,39 +59,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_utils.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-code/src/scitex/git/ops.py
-#
-# """
-# Git operations utilities.
-# """
-#
-# import os
-# from contextlib import contextmanager
-# from pathlib import Path
-#
-#
-# @contextmanager
-# def _in_directory(path: Path):
-#     cwd_original = Path.cwd()
-#     try:
-#         os.chdir(path)
-#         yield
-#     finally:
-#         os.chdir(cwd_original)
-#
-#
-# __all__ = [
-#     "_in_directory",
-# ]
-#
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: /home/ywatanabe/proj/scitex-code/src/scitex/git/_utils.py
-# --------------------------------------------------------------------------------
