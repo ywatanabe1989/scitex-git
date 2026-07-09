@@ -1,4 +1,19 @@
 name: CLA Assistant
+# PILOT: org-level reusable-workflow caller (scitex-ai/.github, 2026-07-10).
+# Triggers/permissions preserved verbatim from the prior local file.
+# Reusable workflow defaults (owner_login=ywatanabe1989,
+# owner_allowlist="bot*,ywatanabe1989", default_branch=main) already match
+# this repo's prior hardcoded values, so no `with:` overrides are needed.
+#
+# NOTE: the prior local file referenced `secrets.CLA_PERSONAL_ACCESS_TOKEN`,
+# which is NOT a secret configured on this repo (`gh secret list` shows
+# only CLAUDE_CODE_CREDENTIALS_JSON and GH_PERSONAL_ACCESS_TOKEN) — that
+# reference was already dead before this migration. The reusable workflow
+# reads `secrets.GH_PERSONAL_ACCESS_TOKEN` instead, which DOES exist on
+# this repo, so `secrets: inherit` should make the CLA-signature-storage
+# push actually work post-migration (a likely improvement, not a
+# regression — flagging in case the previous broken behavior was
+# load-bearing for some reason).
 
 on:
   issue_comment:
@@ -13,21 +28,6 @@ permissions:
   statuses: write
 
 jobs:
-  CLAssistant:
-    runs-on: ubuntu-latest
-    steps:
-      - name: CLA Assistant
-        uses: contributor-assistant/github-action@v2.6.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PERSONAL_ACCESS_TOKEN }}
-        with:
-          path-to-signatures: "signatures/cla.json"
-          path-to-document: "https://github.com/ywatanabe1989/scitex-git/blob/main/CLA.md"
-          branch: "cla-signatures"
-          allowlist: bot*,ywatanabe1989
-          custom-allsigned-prcomment: |
-            Thank you for signing the SciTeX CLA. Your contribution can now be reviewed.
-          custom-notsigned-prcomment: |
-            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-git/blob/main/CLA.md) before your contribution can be merged.
-            Comment `I have read and agree to the SciTeX CLA.` to sign.
+  call:
+    uses: scitex-ai/.github/.github/workflows/cla.yml@main
+    secrets: inherit
